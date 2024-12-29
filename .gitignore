@@ -167,6 +167,9 @@ cython_debug/
 
 # project environment
 env_recsys_start/
+catboost_info/learn
+catboost_info/tmp
+
 
 # datasets
 data/
