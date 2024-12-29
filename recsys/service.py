@@ -1,23 +1,28 @@
-import logging as logger
-import pandas as pd
 import logging
+import pandas as pd
 import requests
+import logging
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("../test_service.log"),  # Запись логов в файл
+        logging.StreamHandler()                    # Вывод логов в консоль
+    ]
+)
+logger = logging.getLogger("uvicorn.error")
+
 
 features_store_url = "http://127.0.0.1:8010"
 events_store_url = "http://127.0.0.1:8020"
 
-# Настройка логирования
-logging.basicConfig(filename='../test_service.log', level=logging.INFO,
-                    format='%(asctime)s:%(levelname)s:%(message)s')
-
-logger = logging.getLogger("uvicorn.error")
-
 class Recommendations:
 
     def __init__(self):
-
         self._recs = {"personal": None, "default": None}
         self._stats = {
             "request_personal_count": 0,
@@ -28,12 +33,11 @@ class Recommendations:
         """
         Загружает рекомендации из файла
         """
-
-        logging.info(f"Loading recommendations, type: {type}")
+        logger.info(f"Loading recommendations, type: {type}")
         self._recs[type] = pd.read_parquet(path, **kwargs)
         if type == "personal":
             self._recs[type] = self._recs[type].set_index("user_id")
-        logging.info(f"Loaded")
+        logger.info(f"Loaded recommendations of type: {type}")
 
     def get(self, user_id: int, k: int=100):
         """
@@ -44,30 +48,20 @@ class Recommendations:
             recs = recs["track_id"].to_list()[:k]
             self._stats["request_personal_count"] += 1
         except KeyError:
-            logging.warning(f"No personal recommendations found for user_id: {user_id}. Using default recommendations.")
+            logger.warning(f"No personal recommendations found for user_id: {user_id}. Using default recommendations.")
             recs = self._recs["default"]
             recs = recs["track_id"].to_list()[:k]
             self._stats["request_default_count"] += 1
         except Exception as e:
-            logging.error(f"Error while fetching recommendations: {str(e)}")
+            logger.error(f"Error while fetching recommendations: {str(e)}")
             recs = []
 
         return recs
 
     def stats(self):
-
-        logging.info("Stats for recommendations")
+        logger.info("Stats for recommendations")
         for name, value in self._stats.items():
-            logging.info(f"{name:<30} {value} ")
-
-def dedup_ids(ids):
-    """
-    Дедублицирует список идентификаторов, оставляя только первое вхождение
-    """
-    seen = set()
-    ids = [id for id in ids if not (id in seen or seen.add(id))]
-
-    return ids
+            logger.info(f"{name:<30} {value}")
 
 rec_store = Recommendations()
 
@@ -85,11 +79,11 @@ rec_store.load(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # код ниже (до yield) выполнится только один раз при запуске сервиса
-    logging.info("Starting")
+    logger.info("Starting the service")
     yield
     # этот код выполнится только один раз при остановке сервиса
-    logging.info("Stopping")
-    logging.rec_store.stats()
+    logger.info("Stopping the service")
+    rec_store.stats()
     
 # создаём приложение FastAPI
 app = FastAPI(title="recommendations", lifespan=lifespan)
@@ -99,10 +93,8 @@ async def recommendations_offline(user_id: int, k: int = 100):
     """
     Возвращает список рекомендаций длиной k для пользователя user_id
     """
-
     recs = rec_store.get(user_id, k)
-    logging.info(f"Offline recommendations for user_id: {user_id}, k: {k}")
-
+    logger.info(f"Offline recommendations for user_id: {user_id}, k: {k} - {recs}")
     return {"recs": recs} 
 
 @app.post("/recommendations_online")
@@ -110,7 +102,6 @@ async def recommendations_online(user_id: int, k: int = 100):
     """
     Возвращает список онлайн-рекомендаций длиной k для пользователя user_id
     """
-
     headers = {"Content-type": "application/json", "Accept": "text/plain"}
 
     # получаем последнее событие пользователя
@@ -122,7 +113,6 @@ async def recommendations_online(user_id: int, k: int = 100):
     items = []
     scores = []
     for track_id in events:
-
         params = {"track_id": track_id, "k": k}
         # для каждого track_id получаем список похожих в item_similar_items
         similar_items_resp = requests.post(features_store_url + "/similar_items", headers=headers, params=params)
@@ -130,15 +120,15 @@ async def recommendations_online(user_id: int, k: int = 100):
 
         items += item_similar_items["track_id_2"]
         scores += item_similar_items["score"]
+    
     # сортируем похожие объекты по scores в убывающем порядке
-    # для старта это приемлемый подход
     combined = list(zip(items, scores))
     combined = sorted(combined, key=lambda x: x[1], reverse=True)
     combined = [item for item, _ in combined]
 
     # удаляем дубликаты, чтобы не выдавать одинаковые рекомендации
     recs = dedup_ids(combined)
-    logging.info(f"Online recommendations for user_id: {user_id}, k: {k}")
+    logger.info(f"Online recommendations for user_id: {user_id}, k: {k} - {recs}")
 
     return {"recs": recs} 
 
@@ -147,7 +137,6 @@ async def recommendations(user_id: int, k: int = 100):
     """
     Возвращает список рекомендаций длиной k для пользователя user_id
     """
-
     recs_offline = await recommendations_offline(user_id, k)
     recs_online = await recommendations_online(user_id, k)
 
@@ -174,6 +163,5 @@ async def recommendations(user_id: int, k: int = 100):
     # оставляем только первые k рекомендаций
     recs_blended = recs_blended[:k]
 
-    logging.info(f"Blended recommendations for user_id: {user_id}, k: {k}")
-
+    logger.info(f"Blended recommendations for user_id: {user_id}, k: {k} - {recs_blended}")
     return {"recs": recs_blended}

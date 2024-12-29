@@ -169,6 +169,7 @@ cython_debug/
 env_recsys_start/
 catboost_info/learn
 catboost_info/tmp
+.venv_recsys/
 
 
 # datasets
