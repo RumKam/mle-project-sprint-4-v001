@@ -164,6 +164,9 @@ cython_debug/
 # data
 *.parquet
 *.pickle
+!test_service.log
+!test_top_popular.parquet
+!test_recommendations.parquet
 
 # project environment
 env_recsys_start/

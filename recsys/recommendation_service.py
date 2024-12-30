@@ -35,7 +35,7 @@ class Recommendations:
             self._recs[type] = self._recs[type].set_index("user_id")
         logging.info(f"Loaded")
 
-    def get(self, user_id: int, k: int=100):
+    def get(self, user_id: int, k: int=10):
         """
         Возвращает список рекомендаций для пользователя
         """
@@ -73,12 +73,12 @@ rec_store = Recommendations()
 
 rec_store.load(
     "personal",
-    "recommendations/recommendations.parquet",
+    "recommendations/test_recommendations.parquet",
     columns=["user_id", "track_id", "rank"],
 )
 rec_store.load(
     "default",
-    "recommendations/top_popular.parquet",
+    "recommendations/test_top_popular.parquet",
     columns=["track_id", "rank"],
 )
 
@@ -95,18 +95,17 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="recommendations", lifespan=lifespan)
 
 @app.post("/recommendations_offline")
-async def recommendations_offline(user_id: int, k: int = 100):
+async def recommendations_offline(user_id: int, k: int = 10):
     """
     Возвращает список рекомендаций длиной k для пользователя user_id
     """
 
     recs = rec_store.get(user_id, k)
-    logging.info(f"Offline recommendations for user_id: {user_id}, k: {k}")
 
     return {"recs": recs} 
 
 @app.post("/recommendations_online")
-async def recommendations_online(user_id: int, k: int = 100):
+async def recommendations_online(user_id: int, k: int = 10):
     """
     Возвращает список онлайн-рекомендаций длиной k для пользователя user_id
     """
@@ -137,13 +136,12 @@ async def recommendations_online(user_id: int, k: int = 100):
     combined = [item for item, _ in combined]
 
     # удаляем дубликаты, чтобы не выдавать одинаковые рекомендации
-    recs = dedup_ids(combined)
-    logging.info(f"Online recommendations for user_id: {user_id}, k: {k}")
+    recs = dedup_ids(combined[:10])
 
     return {"recs": recs} 
 
 @app.post("/recommendations")
-async def recommendations(user_id: int, k: int = 100):
+async def recommendations(user_id: int, k: int = 10):
     """
     Возвращает список рекомендаций длиной k для пользователя user_id
     """
@@ -174,6 +172,5 @@ async def recommendations(user_id: int, k: int = 100):
     # оставляем только первые k рекомендаций
     recs_blended = recs_blended[:k]
 
-    logging.info(f"Blended recommendations for user_id: {user_id}, k: {k}")
 
     return {"recs": recs_blended}
