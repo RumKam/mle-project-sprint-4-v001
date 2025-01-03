@@ -4,9 +4,11 @@ import logging
 import requests
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+from config import (FEATURE_STORE_URL, 
+                     EVENTS_STORE_URL, 
+                     DEFAULT_PATH, 
+                     PERSONAL_RECS_PATH)
 
-features_store_url = "http://127.0.0.1:8010"
-events_store_url = "http://127.0.0.1:8020"
 
 # Настройка логирования
 logging.basicConfig(filename='../test_service.log', level=logging.INFO,
@@ -73,12 +75,12 @@ rec_store = Recommendations()
 
 rec_store.load(
     "personal",
-    "recommendations/test_recommendations.parquet",
+    PERSONAL_RECS_PATH,
     columns=["user_id", "track_id", "rank"],
 )
 rec_store.load(
     "default",
-    "recommendations/test_top_popular.parquet",
+    DEFAULT_PATH,
     columns=["track_id", "rank"],
 )
 
@@ -113,8 +115,8 @@ async def recommendations_online(user_id: int, k: int = 10):
     headers = {"Content-type": "application/json", "Accept": "text/plain"}
 
     # получаем последнее событие пользователя
-    params = {"user_id": user_id, "k": 3}
-    resp = requests.post(events_store_url + "/get", headers=headers, params=params)
+    params = {"user_id": user_id, "k": k}
+    resp = requests.post(EVENTS_STORE_URL + "/get", headers=headers, params=params)
     events = resp.json()
     events = events["events"][:k]
 
@@ -124,7 +126,7 @@ async def recommendations_online(user_id: int, k: int = 10):
 
         params = {"track_id": track_id, "k": k}
         # для каждого track_id получаем список похожих в item_similar_items
-        similar_items_resp = requests.post(features_store_url + "/similar_items", headers=headers, params=params)
+        similar_items_resp = requests.post(FEATURE_STORE_URL + "/similar_items", headers=headers, params=params)
         item_similar_items = similar_items_resp.json()
 
         items += item_similar_items["track_id_2"]
@@ -136,9 +138,10 @@ async def recommendations_online(user_id: int, k: int = 10):
     combined = [item for item, _ in combined]
 
     # удаляем дубликаты, чтобы не выдавать одинаковые рекомендации
-    recs = dedup_ids(combined[:10])
-
-    return {"recs": recs} 
+    recs = dedup_ids(combined)
+    
+    # Отберем необходимое количество рекомендаций
+    return {"recs": recs[:k]} 
 
 @app.post("/recommendations")
 async def recommendations(user_id: int, k: int = 10):

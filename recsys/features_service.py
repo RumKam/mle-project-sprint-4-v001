@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 
 import pandas as pd
 from fastapi import FastAPI
+from config import SIMILAR_RECS_PATH
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -16,18 +17,21 @@ class SimilarItems:
         """
         Загружаем данные из файла
         """
-
+        
         logger.info(f"Loading data, type: {type}")
-        self._similar_items = pd.read_parquet("recommendations/similar_items.parquet")
-        self._similar_items.set_index("track_id_1", inplace=True)
-        logger.info(f"Loaded")
+        try:
+            self._similar_items = pd.read_parquet(SIMILAR_RECS_PATH)
+            self._similar_items.set_index("track_id_1", inplace=True)
+            logger.info(f"Loaded")
+        except KeyError:
+            logger.error("Loading failed")
 
-    def get(self, track_id: int, k: int = 10):
+    def get(self, item_id: int, k: int = 10):
         """
         Возвращает список похожих объектов
         """
         try:
-            i2i = self._similar_items.loc[track_id].head(k)
+            i2i = self._similar_items.loc[item_id].head(k)
             i2i = i2i[["track_id_2", "score"]].to_dict(orient="list")
         except KeyError:
             logger.error("No recommendations found")
@@ -41,7 +45,7 @@ sim_items_store = SimilarItems()
 async def lifespan(app: FastAPI):
     # код ниже (до yield) выполнится только один раз при запуске сервиса
     sim_items_store.load(
-        "recommendations/similar_items.parquet",
+        SIMILAR_RECS_PATH,
         columns=["track_id_1", "track_id_2", "score"],
     )
     logger.info("Ready!")

@@ -1,12 +1,12 @@
 import requests
 import logging
+from recsys.config import (RECS_URL, 
+                           EVENTS_STORE_URL)
 
 # Настройка логирования
 logging.basicConfig(filename='test_service.log', level=logging.INFO,
                     format='%(asctime)s:%(levelname)s:%(message)s')
 
-recommendations_url = "http://127.0.0.1:8000"
-events_store_url = "http://127.0.0.1:8020"
 headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
 
 def fetch_recommendations(user_id):
@@ -14,7 +14,7 @@ def fetch_recommendations(user_id):
     
     # Запрос оффлайн рекомендаций
     try:
-        resp_offline = requests.post(recommendations_url + "/recommendations_offline", headers=headers, params=params)
+        resp_offline = requests.post(RECS_URL + "/recommendations_offline", headers=headers, params=params)
         resp_offline.raise_for_status()
         recs_offline = resp_offline.json()["recs"]
         logging.info(f'Fetched offline recommendations for user {user_id}. Success.')
@@ -24,7 +24,7 @@ def fetch_recommendations(user_id):
 
     # Запрос онлайн рекомендаций
     try:
-        resp_online = requests.post(recommendations_url + "/recommendations_online", headers=headers, params=params)
+        resp_online = requests.post(RECS_URL + "/recommendations_online", headers=headers, params=params)
         resp_online.raise_for_status()
         recs_online = resp_online.json()["recs"]
         logging.info(f'Fetched online recommendations for user {user_id}. Success.')
@@ -34,7 +34,7 @@ def fetch_recommendations(user_id):
 
     # Запрос смешанных рекомендаций
     try:
-        resp_blended = requests.post(recommendations_url + "/recommendations", headers=headers, params=params)
+        resp_blended = requests.post(RECS_URL + "/recommendations", headers=headers, params=params)
         resp_blended.raise_for_status()
         recs_blended = resp_blended.json()["recs"]
         logging.info(f'Fetched blended recommendations for user {user_id}: Success.')
@@ -58,9 +58,9 @@ event_item_ids = [589498, 590262, 590303, 99262, 590262, 590303, 99262]
 # Отправка событий в хранилище признаков
 for event_item_id in event_item_ids:
     try:
-        resp = requests.post(events_store_url + "/put", 
+        resp = requests.post(EVENTS_STORE_URL + "/put", 
                              headers=headers, 
-                             params={"user_id": user_id, "track_id": event_item_id})
+                             params={"user_id": user_id, "item_id": event_item_id})
         # Проверка на HTTP ошибки
         resp.raise_for_status()  
         logging.info(f'Successfully logged event {event_item_id} for user {user_id}.')
