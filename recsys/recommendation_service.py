@@ -4,10 +4,7 @@ import logging
 import requests
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from config import (FEATURE_STORE_URL, 
-                     EVENTS_STORE_URL, 
-                     DEFAULT_PATH, 
-                     PERSONAL_RECS_PATH)
+from config import config
 
 
 # Настройка логирования
@@ -75,12 +72,12 @@ rec_store = Recommendations()
 
 rec_store.load(
     "personal",
-    PERSONAL_RECS_PATH,
+    config['PERSONAL_RECS_PATH'],
     columns=["user_id", "track_id", "rank"],
 )
 rec_store.load(
     "default",
-    DEFAULT_PATH,
+    config['DEFAULT_PATH'],
     columns=["track_id", "rank"],
 )
 
@@ -116,7 +113,7 @@ async def recommendations_online(user_id: int, k: int = 10):
 
     # получаем последнее событие пользователя
     params = {"user_id": user_id, "k": k}
-    resp = requests.post(EVENTS_STORE_URL + "/get", headers=headers, params=params)
+    resp = requests.post(config['EVENTS_STORE_URL'] + "/get", headers=headers, params=params)
     events = resp.json()
     events = events["events"][:k]
 
@@ -126,7 +123,7 @@ async def recommendations_online(user_id: int, k: int = 10):
 
         params = {"track_id": track_id, "k": k}
         # для каждого track_id получаем список похожих в item_similar_items
-        similar_items_resp = requests.post(FEATURE_STORE_URL + "/similar_items", headers=headers, params=params)
+        similar_items_resp = requests.post(config['FEATURE_STORE_URL'] + "/similar_items", headers=headers, params=params)
         item_similar_items = similar_items_resp.json()
 
         items += item_similar_items["track_id_2"]

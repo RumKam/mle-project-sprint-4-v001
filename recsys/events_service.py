@@ -2,6 +2,10 @@ from fastapi import FastAPI
 import requests
 import logging
 
+# Настройка логирования
+logging.basicConfig(filename='../test_service.log', level=logging.INFO,
+                    format='%(asctime)s:%(levelname)s:%(message)s')
+
 logger = logging.getLogger("uvicorn.error")
 
 class EventStore:
@@ -23,10 +27,13 @@ class EventStore:
         """
         Возвращает события для пользователя
         """
-        try:
-            user_events = self.events.get(user_id, [])
-        except KeyError:
-            logger.error("Events not found")
+        user_events = self.events.get(user_id, [])
+
+        # Добавим проверку отсутствия событий
+        if user_events == []:
+            logging.info("Events not found") 
+        else:
+            logging.info(f"Number of events for user {user_id}: {len(user_events)}")
 
         return user_events[:k]
 

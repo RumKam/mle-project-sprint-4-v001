@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 import pandas as pd
 from fastapi import FastAPI
-from config import SIMILAR_RECS_PATH
+from config import config
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -20,7 +20,7 @@ class SimilarItems:
         
         logger.info(f"Loading data, type: {type}")
         try:
-            self._similar_items = pd.read_parquet(SIMILAR_RECS_PATH)
+            self._similar_items = pd.read_parquet(config["SIMILAR_RECS_PATH"])
             self._similar_items.set_index("track_id_1", inplace=True)
             logger.info(f"Loaded")
         except KeyError:
@@ -45,7 +45,7 @@ sim_items_store = SimilarItems()
 async def lifespan(app: FastAPI):
     # код ниже (до yield) выполнится только один раз при запуске сервиса
     sim_items_store.load(
-        SIMILAR_RECS_PATH,
+        config['SIMILAR_RECS_PATH'],
         columns=["track_id_1", "track_id_2", "score"],
     )
     logger.info("Ready!")
