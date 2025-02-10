@@ -1,0 +1,43 @@
+2025-01-05 12:31:45,377:INFO:Loading recommendations, type: personal
+2025-01-05 12:31:45,424:INFO:Loaded
+2025-01-05 12:31:45,424:INFO:Loading recommendations, type: default
+2025-01-05 12:31:45,427:INFO:Loaded
+2025-01-05 12:31:45,430:INFO:Starting
+2025-01-05 12:31:52,063:INFO:Successfully logged event 589498 for user 813534.
+2025-01-05 12:31:52,065:INFO:Successfully logged event 590262 for user 813534.
+2025-01-05 12:31:52,067:INFO:Successfully logged event 590303 for user 813534.
+2025-01-05 12:31:52,069:INFO:Successfully logged event 99262 for user 813534.
+2025-01-05 12:31:52,071:INFO:Successfully logged event 590262 for user 813534.
+2025-01-05 12:31:52,072:INFO:Successfully logged event 590303 for user 813534.
+2025-01-05 12:31:52,074:INFO:Successfully logged event 99262 for user 813534.
+2025-01-05 12:31:52,074:INFO:Testing for user_no_recommendations, user_id: 1
+2025-01-05 12:31:52,076:WARNING:No personal recommendations found for user_id: 1. Using default recommendations.
+2025-01-05 12:31:52,077:INFO:Fetched offline recommendations for user 1. Success.
+2025-01-05 12:31:52,080:INFO:Events not found
+2025-01-05 12:31:52,082:INFO:Fetched online recommendations for user 1. Success.
+2025-01-05 12:31:52,083:WARNING:No personal recommendations found for user_id: 1. Using default recommendations.
+2025-01-05 12:31:52,084:INFO:Events not found
+2025-01-05 12:31:52,085:INFO:Fetched blended recommendations for user 1: Success.
+2025-01-05 12:31:52,086:INFO:Offline Recommendations for user 1: [53404, 178529, 33311009, 35505245, 24692821, 795836, 6705392, 32947997, 37384, 45499814].
+2025-01-05 12:31:52,086:INFO:Testing for user_no_online_history, user_id: 464007
+2025-01-05 12:31:52,088:INFO:Fetched offline recommendations for user 464007. Success.
+2025-01-05 12:31:52,090:INFO:Events not found
+2025-01-05 12:31:52,091:INFO:Fetched online recommendations for user 464007. Success.
+2025-01-05 12:31:52,094:INFO:Events not found
+2025-01-05 12:31:52,095:INFO:Fetched blended recommendations for user 464007: Success.
+2025-01-05 12:31:52,095:INFO:Blended Recommendations for user 464007: [18976744, 670413, 289211, 57921154, 85634417, 14423148, 54198037, 39257277, 56920237, 27731100].
+2025-01-05 12:31:52,095:INFO:Testing for user_with_online_history, user_id: 813534
+2025-01-05 12:31:52,097:INFO:Fetched offline recommendations for user 813534. Success.
+2025-01-05 12:31:52,100:INFO:Number of events for user 813534: 7
+2025-01-05 12:31:52,250:INFO:Fetched online recommendations for user 813534. Success.
+2025-01-05 12:31:52,253:INFO:Number of events for user 813534: 7
+2025-01-05 12:31:52,308:INFO:Fetched blended recommendations for user 813534: Success.
+2025-01-05 12:31:52,308:INFO:Online Recommendations for user 813534: [18717190, 15358424, 37373277, 24338771, 19847749, 77886857, 40055574, 1537234, 59444126, 740909].
+2025-01-05 12:31:52,309:INFO:Testing for user_with_online_history, user_id: 813534
+2025-01-05 12:31:52,311:INFO:Fetched offline recommendations for user 813534. Success.
+2025-01-05 12:31:52,314:INFO:Number of events for user 813534: 7
+2025-01-05 12:31:52,370:INFO:Fetched online recommendations for user 813534. Success.
+2025-01-05 12:31:52,373:INFO:Number of events for user 813534: 7
+2025-01-05 12:31:52,430:INFO:Fetched blended recommendations for user 813534: Success.
+2025-01-05 12:31:52,430:INFO:Blended Recommendations for user 813534: [58704255, 15358424, 32689510, 24338771, 42754710, 77886857, 630431, 1537234, 2282285, 740909].
+2025-01-05 12:32:33,173:INFO:Stopping
